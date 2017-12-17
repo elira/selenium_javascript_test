@@ -1,16 +1,19 @@
 const assert = require('assert');
-const {Builder, By, Key, until} = require('selenium-webdriver');
+const {Builder, By, Key, until,logging} = require('selenium-webdriver');
 
 let driver = new Builder()
     .forBrowser('chrome')
     .build();
+
+logging.installConsoleHandler();
+logging.getLogger('webdriver.http').setLevel(logging.Level.ALL);
 
 // driver.get('http://www.google.com/ncr');
 // driver.findElement(By.name('q')).sendKeys('webdriver', Key.RETURN);
 // driver.wait(until.titleIs('webdriver - Google Search'), 1000);
 // driver.quit();
 
-describe('Google Search', function() {
+describe('VacationChamp Login Page', function() {
   let driver;
 
   beforeEach(async function() {
@@ -61,27 +64,27 @@ describe('Google Search', function() {
         'Could not find login window');
   });
   
+  
   it('should be able to login', async function() {
     await driver.get('http://localhost:5706/');
 
-    await driver.wait(until.titleIs('VacationChamp'), 1000);
+    await driver.wait(until.titleIs('VacationChamp'), 10000);
 	
 	await driver.findElement(By.className('trigger-sign-in-modal')).sendKeys( Key.RETURN)
 
     let loginModal = await driver.findElement(By.id('modal-signin'));
 	
 	let userInput = await loginModal.findElement(By.name('userName'));
+	userInput.sendKeys('erabinovitz@vacationchamp.com');
+	(await loginModal.findElement(By.name('password'))).sendKeys('erabinovitz@vacationchamp.com');
+	await driver.findElement(By.id('formSubmitButton')).sendKeys( Key.RETURN)
 	
+	await until.titleContains('- Vacation Cham',100000);
 	
-	userInput.sendKeys('erabinovitz@vacationchamp.com', Key.RETURN);
-	
-	
-	driver.pause(10000);
-	
-    assert.notEqual(
-        loginModal,
-		null,
-        'Could not login');
+	let url = await driver.getCurrentUrl();
+    assert.ok(
+        url.includes('- Vacation Cham'),
+        'unexpected url: ' + url);
   });
   
   
